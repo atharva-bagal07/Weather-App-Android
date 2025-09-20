@@ -1,7 +1,18 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
+val weatherApiKey: String = localProperties.getProperty("Weather_api_key") ?: ""
 
 android {
     namespace = "com.example.weatherapp"
@@ -15,7 +26,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "Weather_api_key", "\"${project.findProperty("Weather_api_key")}\"")
+        buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -65,6 +76,14 @@ dependencies {
 
 //    Gson Converter
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+//    Location Services
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
+//    For RunTime Permission in Compose
+    implementation("com.google.accompanist:accompanist-permissions:0.31.5-beta")
+
+
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")

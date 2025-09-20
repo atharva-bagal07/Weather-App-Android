@@ -12,6 +12,11 @@ interface WeatherService{
     suspend fun getWeather(
         @Query("key") apikey: String,
         @Query("q") city: String): Response<WeatherResponse>
+
+    @GET("forecast.json")
+    suspend fun getForecast(
+        @Query("key") apikey: String,
+        @Query("q") city: String): Response<WeatherResponse>
 }
 
 object RetrofitIObj{
@@ -21,4 +26,12 @@ object RetrofitIObj{
         .build()
 
     val apiInstance = retrofit_initiator.create(WeatherService::class.java)
+}
+object RetrofitIObj2{
+    private val retrofit_initiator = Retrofit.Builder()
+        .baseUrl("https://api.weatherapi.com/v1/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    val apiInstance2 = retrofit_initiator.create(WeatherService::class.java)
 }

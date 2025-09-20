@@ -1,28 +1,57 @@
 package com.example.weatherapp
 
+import android.content.pm.PackageManager
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.delay
+import android.Manifest
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+
+
 
 @Composable
 fun WeatherScreen() {
@@ -30,26 +59,92 @@ fun WeatherScreen() {
     val viewModeObj: WeatherViewModel = viewModel()
     val weatherstate by viewModeObj.state_for_comp
     val user_input by viewModeObj.userInput
-    val inttemp = weatherstate.temp.toInt()
 
-//    Column(modifier = Modifier.padding(8.dp),
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center
-//    ){
-//
-//        OutlinedTextField(value = user_input, onValueChange = { viewModeObj.onUserInputChange(it) })
-//        Spacer(modifier = Modifier.padding(8.dp))
-//
-//        Button(onClick = { viewModeObj.getData() }) {
-//            Text(text = "Get Weather")
-//        }
-//
-//        Text(text = "Current Temperature: ${weatherstate.temp}", fontSize = 16.sp)
-//        Text(text = "City: ${weatherstate.City}", fontSize = 16.sp)
-//        Text(text = "State: ${weatherstate.State}", fontSize = 16.sp)
-//        Text(text = "Country: ${weatherstate.Country}", fontSize = 16.sp)
-//
-//    }
+
+    var currentTime by remember { mutableStateOf(Date()) }
+
+    val context = LocalContext.current
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+// Permission launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Try to get a fresh GPS location first
+            fusedLocationClient.getCurrentLocation(
+                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                null).addOnSuccessListener { freshLocation ->
+                if (freshLocation != null) {
+                    Log.d("WeatherScreen", "📍 Fresh GPS: ${freshLocation.latitude}, ${freshLocation.longitude}")
+                    viewModeObj.getWeatherByCoordinates(freshLocation.latitude, freshLocation.longitude)
+                } else {
+                    // fallback: use last known location
+                    fusedLocationClient.lastLocation.addOnSuccessListener { cachedLocation ->
+                        cachedLocation?.let {
+                            Log.d("WeatherScreen", "📍 Fallback lastLocation: ${it.latitude}, ${it.longitude}")
+                            viewModeObj.getWeatherByCoordinates(it.latitude, it.longitude)
+                        }
+                    }
+                }
+            }
+        } else {
+            Log.e("WeatherScreen", "❌ Location permission denied")
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // Already have permission → fetch weather
+            fusedLocationClient.getCurrentLocation(
+                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                null
+            ).addOnSuccessListener { freshLocation ->
+                if (freshLocation != null) {
+                    Log.d("WeatherScreen", "📍 Fresh GPS: ${freshLocation.latitude}, ${freshLocation.longitude}")
+                    viewModeObj.getWeatherByCoordinates(freshLocation.latitude, freshLocation.longitude)
+                } else {
+                    fusedLocationClient.lastLocation.addOnSuccessListener { cachedLocation ->
+                        cachedLocation?.let {
+                            Log.d("WeatherScreen", "📍 Fallback lastLocation: ${it.latitude}, ${it.longitude}")
+                            viewModeObj.getWeatherByCoordinates(it.latitude, it.longitude)
+                        }
+                    }
+                }
+            }
+        } else {
+            // Ask for permission
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+
+
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentTime = Date()
+            delay(1000L)
+
+        }
+    }
+
+
+    val dateFormat = SimpleDateFormat("MMMM d", Locale.ENGLISH)
+    val timeFormat = SimpleDateFormat("h:mma", Locale.ENGLISH)
+
+    dateFormat.timeZone = TimeZone.getTimeZone(weatherstate.TimeZone)
+    timeFormat.timeZone = TimeZone.getTimeZone(weatherstate.TimeZone)
+
+    val formattedDate = dateFormat.format(currentTime)
+    val formattedTime = timeFormat.format(currentTime).lowercase()
+
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -57,30 +152,99 @@ fun WeatherScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     )
     {
+        SearchBar(
+            query = user_input,
+            onQueryChanged = {
+                viewModeObj.onUserInputChange(it) }
+        )
         Box(modifier = Modifier.weight(0.62f),
             contentAlignment = Alignment.CenterStart)
         {
-            Text(text = "${inttemp}°", fontSize = 72.sp,
-                modifier = Modifier.padding(top = 96.dp),
-
-
-            )
+            Text(text = "${weatherstate.temp.toInt()}°", fontSize = 72.sp,
+                modifier = Modifier.padding(top = 86.dp),
+                color = Color.Black
+                )
         }
         Box(modifier = Modifier
             .weight(0.38f)
             .fillMaxWidth()
-            .background(Color.Green)){
+            ){
             Column {
-                Text(text = "Santa Cruz", fontSize = 32.sp, modifier = Modifier.padding(top = 16.dp).padding(horizontal = 36.dp))
-//                Text(text = "_________", letterSpacing = 1, fontSize = 32.sp,modifier = Modifier.padding(horizontal = 36.dp))
+                Text(text = weatherstate.City, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 24.sp, modifier = Modifier
+                    .padding(horizontal = 36.dp), color = Color.Black
+                )
+                Divider(
+                    color = Color.Black,
+                    thickness = 1.dp,
+                    modifier = Modifier
+                        .padding(vertical = 4.dp)
+                        .padding(horizontal = 36.dp)
+                        .width(180.dp)
+                )
+                Text(text = formattedDate, fontSize = 32.sp, modifier = Modifier
+                    .padding(top = 4.dp)
+                    .padding(horizontal = 36.dp), color = Color.Black)
+                Text(text = formattedTime, fontSize = 18.sp, modifier = Modifier
+                    .padding(top = 4.dp)
+                    .padding(horizontal = 36.dp), color = Color.Black)
+                Row {
+                    Text(text = "RAIN PROBABILITY\n${weatherstate.ChanceOfRain}%", modifier = Modifier
+                        .padding(start = 36.dp)
+                        .padding(top = 16.dp)
+                        .padding(end = 16.dp), color = Color.Black)
+                    Box(
+                        modifier = Modifier
+                            .width(1.dp)
+                            .height(32.dp)
+                            .background(Color.LightGray)
+                            .align(Alignment.CenterVertically)
+                            .padding(top = 32.dp)
+
+                    )
+                    Text(text = "HUMIDITY\n${weatherstate.Humidity}%", modifier = Modifier
+                        .padding(top = 16.dp)
+                        .padding(start = 16.dp), color = Color.Black)
+                }
             }
-
-
         }
-
-
     }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChanged: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val viewModeObj: WeatherViewModel = viewModel()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
-            
-    }
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChanged,
+        placeholder = { Text("Enter a city name") },
+        textStyle = TextStyle(Color.Black),
+        trailingIcon = {
+                       IconButton(onClick = { viewModeObj.getData()
+//                           viewModeObj.onUserInputChange("")
+                           keyboardController?.hide()
+                       }) {
+                           Icon(imageVector = Icons.Default.Send,
+                               contentDescription = null, tint = Color.Black
+                           )
+                       }
+        },
+        shape = RoundedCornerShape(12.dp),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            containerColor = Color.White,
+            focusedBorderColor = Color.Gray,
+            unfocusedBorderColor = Color.LightGray
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        singleLine = true,
+    )
+}
+
