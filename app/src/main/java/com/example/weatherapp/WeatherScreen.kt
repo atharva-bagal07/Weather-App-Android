@@ -46,6 +46,8 @@ import android.Manifest
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -60,6 +62,7 @@ fun WeatherScreen() {
     val weatherstate by viewModeObj.state_for_comp
     val user_input by viewModeObj.userInput
 
+    var isLocationLoading by remember { mutableStateOf(true) }
 
     var currentTime by remember { mutableStateOf(Date()) }
 
@@ -68,70 +71,61 @@ fun WeatherScreen() {
         LocationServices.getFusedLocationProviderClient(context)
     }
 
-// Permission launcher
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            // Try to get a fresh GPS location first
-            fusedLocationClient.getCurrentLocation(
-                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-                null).addOnSuccessListener { freshLocation ->
-                if (freshLocation != null) {
-                    Log.d("WeatherScreen", "📍 Fresh GPS: ${freshLocation.latitude}, ${freshLocation.longitude}")
-                    viewModeObj.getWeatherByCoordinates(freshLocation.latitude, freshLocation.longitude)
-                } else {
-                    // fallback: use last known location
-                    fusedLocationClient.lastLocation.addOnSuccessListener { cachedLocation ->
-                        cachedLocation?.let {
-                            Log.d("WeatherScreen", "📍 Fallback lastLocation: ${it.latitude}, ${it.longitude}")
-                            viewModeObj.getWeatherByCoordinates(it.latitude, it.longitude)
-                        }
-                    }
-                }
-            }
-        } else {
-            Log.e("WeatherScreen", "❌ Location permission denied")
-        }
-    }
 
-    LaunchedEffect(Unit) {
+    fun fetchLocation() {
         if (ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            // Already have permission → fetch weather
             fusedLocationClient.getCurrentLocation(
                 com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
                 null
-            ).addOnSuccessListener { freshLocation ->
-                if (freshLocation != null) {
-                    Log.d("WeatherScreen", "📍 Fresh GPS: ${freshLocation.latitude}, ${freshLocation.longitude}")
-                    viewModeObj.getWeatherByCoordinates(freshLocation.latitude, freshLocation.longitude)
+            ).addOnSuccessListener { location ->
+                if (location != null) {
+                    viewModeObj.getWeatherByCoordinates(location.latitude, location.longitude)
                 } else {
-                    fusedLocationClient.lastLocation.addOnSuccessListener { cachedLocation ->
-                        cachedLocation?.let {
-                            Log.d("WeatherScreen", "📍 Fallback lastLocation: ${it.latitude}, ${it.longitude}")
+                    fusedLocationClient.lastLocation.addOnSuccessListener { lastLocation ->
+                        lastLocation?.let {
                             viewModeObj.getWeatherByCoordinates(it.latitude, it.longitude)
                         }
                     }
                 }
             }
-        } else {
-            // Ask for permission
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        else{
+            Log.e("fetchLocation", "Location permission not granted")
         }
     }
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            fetchLocation()
+        }
+        else{
+            Log.e("WeatherScreen", "❌ Location permission denied")
+        }
+    }
 
+    LaunchedEffect(Unit) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
 
+        if (hasPermission) {
+            fetchLocation()
+        }
+        else{
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
             currentTime = Date()
             delay(1000L)
-
         }
     }
 
@@ -157,58 +151,64 @@ fun WeatherScreen() {
             onQueryChanged = {
                 viewModeObj.onUserInputChange(it) }
         )
-        Box(modifier = Modifier.weight(0.62f),
-            contentAlignment = Alignment.CenterStart)
-        {
-            Text(text = "${weatherstate.temp.toInt()}°", fontSize = 72.sp,
-                modifier = Modifier.padding(top = 86.dp),
-                color = Color.Black
-                )
-        }
-        Box(modifier = Modifier
-            .weight(0.38f)
-            .fillMaxWidth()
-            ){
-            Column {
-                Text(text = weatherstate.City, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 24.sp, modifier = Modifier
-                    .padding(horizontal = 36.dp), color = Color.Black
-                )
-                Divider(
-                    color = Color.Black,
-                    thickness = 1.dp,
-                    modifier = Modifier
-                        .padding(vertical = 4.dp)
-                        .padding(horizontal = 36.dp)
-                        .width(180.dp)
-                )
-                Text(text = formattedDate, fontSize = 32.sp, modifier = Modifier
-                    .padding(top = 4.dp)
-                    .padding(horizontal = 36.dp), color = Color.Black)
-                Text(text = formattedTime, fontSize = 18.sp, modifier = Modifier
-                    .padding(top = 4.dp)
-                    .padding(horizontal = 36.dp), color = Color.Black)
-                Row {
-                    Text(text = "RAIN PROBABILITY\n${weatherstate.ChanceOfRain}%", modifier = Modifier
-                        .padding(start = 36.dp)
-                        .padding(top = 16.dp)
-                        .padding(end = 16.dp), color = Color.Black)
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(32.dp)
-                            .background(Color.LightGray)
-                            .align(Alignment.CenterVertically)
-                            .padding(top = 32.dp)
 
+        Box(modifier = Modifier.weight(0.62f),
+                contentAlignment = Alignment.CenterStart)
+
+            {
+                Text(text = "${weatherstate.temp.toInt()}°", fontSize = 72.sp,
+                    modifier = Modifier.padding(top = 86.dp),
+                    color = Color.Black
+                )
+            }
+            Box(modifier = Modifier
+                .weight(0.38f)
+                .fillMaxWidth()
+            ){
+                Column {
+                    Text(text = weatherstate.City, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 24.sp, modifier = Modifier
+                        .padding(horizontal = 36.dp), color = Color.Black
                     )
-                    Text(text = "HUMIDITY\n${weatherstate.Humidity}%", modifier = Modifier
-                        .padding(top = 16.dp)
-                        .padding(start = 16.dp), color = Color.Black)
+                    Divider(
+                        color = Color.Black,
+                        thickness = 1.dp,
+                        modifier = Modifier
+                            .padding(vertical = 4.dp)
+                            .padding(horizontal = 36.dp)
+                            .width(180.dp)
+                    )
+                    Text(text = formattedDate, fontSize = 32.sp, modifier = Modifier
+                        .padding(top = 4.dp)
+                        .padding(horizontal = 36.dp), color = Color.Black)
+                    Text(text = formattedTime, fontSize = 18.sp, modifier = Modifier
+                        .padding(top = 4.dp)
+                        .padding(horizontal = 36.dp), color = Color.Black)
+                    Row {
+                        Text(text = "RAIN PROBABILITY\n${weatherstate.ChanceOfRain}%", modifier = Modifier
+                            .padding(start = 36.dp)
+                            .padding(top = 16.dp)
+                            .padding(end = 16.dp), color = Color.Black)
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(32.dp)
+                                .background(Color.LightGray)
+                                .align(Alignment.CenterVertically)
+                                .padding(top = 32.dp)
+
+                        )
+                        Text(text = "HUMIDITY\n${weatherstate.Humidity}%", modifier = Modifier
+                            .padding(top = 16.dp)
+                            .padding(start = 16.dp), color = Color.Black)
+                    }
                 }
             }
-        }
+
+
     }
+
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -227,7 +227,6 @@ fun SearchBar(
         textStyle = TextStyle(Color.Black),
         trailingIcon = {
                        IconButton(onClick = { viewModeObj.getData()
-//                           viewModeObj.onUserInputChange("")
                            keyboardController?.hide()
                        }) {
                            Icon(imageVector = Icons.Default.Send,
@@ -247,4 +246,3 @@ fun SearchBar(
         singleLine = true,
     )
 }
-
