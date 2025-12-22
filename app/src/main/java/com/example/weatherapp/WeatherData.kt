@@ -21,9 +21,19 @@ data class WeatherResponse(
 
 )
 data class Day(
-    val daily_chance_of_rain: Int
-)data class Forecastday(
-    val day: Day
-)data class Forecast(
+    val daily_chance_of_rain: Int)
+
+data class ConditionIcon(
+    val icon: String
+)
+data class HourlyData(
+    val time: String,
+    val condition: ConditionIcon
+)
+data class Forecastday(
+    val day: Day,
+    val hour: List<HourlyData>)
+
+data class Forecast(
     val forecastday: List<Forecastday>
 )

@@ -5,7 +5,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.internal.GsonBuildConfig
 import kotlinx.coroutines.launch
 
 class WeatherViewModel: ViewModel() {
@@ -92,7 +91,9 @@ class WeatherViewModel: ViewModel() {
                             State = body.location.region,
                             TimeZone = body.location.tz_id,
                             Humidity = body.current.humidity,
-                            ChanceOfRain = body2.forecast.forecastday[0].day.daily_chance_of_rain
+                            ChanceOfRain = body2.forecast.forecastday[0].day.daily_chance_of_rain,
+                            HourlyTime = body2.forecast.forecastday[0].hour[0].time,
+                            HourlyIcon = body2.forecast.forecastday[0].hour[0].condition.icon
                         )
                     }
                 } else {
@@ -114,4 +115,6 @@ data class WeatherState(
     val Country: String = "",
     val TimeZone: String = "Asia/Kolkata",
     val Humidity: Int = 0,
-    val ChanceOfRain: Int = 0)
+    val ChanceOfRain: Int = 0,
+    val HourlyTime: String = "",
+    val HourlyIcon: String = "")

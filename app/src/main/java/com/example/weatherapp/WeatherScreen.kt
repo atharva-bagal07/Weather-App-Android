@@ -1,7 +1,13 @@
 package com.example.weatherapp
 
+import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,9 +16,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,8 +36,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -42,17 +53,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.delay
-import android.Manifest
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-
 
 
 @Composable
@@ -62,7 +66,6 @@ fun WeatherScreen() {
     val weatherstate by viewModeObj.state_for_comp
     val user_input by viewModeObj.userInput
 
-    var isLocationLoading by remember { mutableStateOf(true) }
 
     var currentTime by remember { mutableStateOf(Date()) }
 
@@ -142,8 +145,8 @@ fun WeatherScreen() {
 
     Column(modifier = Modifier
         .fillMaxSize()
-        .paint(painterResource(id = R.drawable.uifinal)),
-        horizontalAlignment = Alignment.CenterHorizontally
+        .paint(painterResource(id = R.drawable.uifinal))
+
     )
     {
         SearchBar(
@@ -152,61 +155,109 @@ fun WeatherScreen() {
                 viewModeObj.onUserInputChange(it) }
         )
 
-        Box(modifier = Modifier.weight(0.62f),
-                contentAlignment = Alignment.CenterStart)
+        Box(modifier = Modifier
+            .weight(0.6f)
+            .fillMaxWidth() // IMPORTANT: Ensures the Box uses the full horizontal space
+        )
 
-            {
-                Text(text = "${weatherstate.temp.toInt()}°", fontSize = 72.sp,
-                    modifier = Modifier.padding(top = 86.dp),
-                    color = Color.Black
-                )
-            }
+        {
             Box(modifier = Modifier
-                .weight(0.38f)
-                .fillMaxWidth()
+                .padding(16.dp)
+                .shadow(
+                    elevation = 8.dp, // Adjust the value for desired depth (e.g., 4.dp, 8.dp)
+                    shape = RoundedCornerShape(12.dp) // The shadow shape must match the box shape
+                )
+                .wrapContentSize(align = Alignment.TopStart)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFF355C7D))
+                .border(
+                    BorderStroke(2.dp, Color(0xFF355C7D)),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(8.dp)
             ){
+
                 Column {
-                    Text(text = weatherstate.City, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 24.sp, modifier = Modifier
-                        .padding(horizontal = 36.dp), color = Color.Black
-                    )
+
+                    Text(text = weatherstate.City, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White, modifier = Modifier.graphicsLayer(alpha = 0.9f))
+
                     Divider(
-                        color = Color.Black,
+                        color = Color.White,
                         thickness = 1.dp,
                         modifier = Modifier
                             .padding(vertical = 4.dp)
-                            .padding(horizontal = 36.dp)
+                            .padding(end = 36.dp)
                             .width(180.dp)
+                            .graphicsLayer(alpha = 0.4f)
                     )
-                    Text(text = formattedDate, fontSize = 32.sp, modifier = Modifier
-                        .padding(top = 4.dp)
-                        .padding(horizontal = 36.dp), color = Color.Black)
-                    Text(text = formattedTime, fontSize = 18.sp, modifier = Modifier
-                        .padding(top = 4.dp)
-                        .padding(horizontal = 36.dp), color = Color.Black)
+
+                    Text(text = formattedDate, fontSize = 20.sp,
+                        modifier = Modifier.graphicsLayer(alpha = 0.8f),
+                        color = Color.White)
+
+                    Text(text = formattedTime, fontSize = 16.sp,
+                        modifier = Modifier.graphicsLayer(alpha = 0.8f),
+                        color = Color.White)
+
                     Row {
+
                         Text(text = "RAIN PROBABILITY\n${weatherstate.ChanceOfRain}%", modifier = Modifier
-                            .padding(start = 36.dp)
-                            .padding(top = 16.dp)
-                            .padding(end = 16.dp), color = Color.Black)
+                            .padding(top = 8.dp)
+                            .padding(end = 8.dp)
+                            .graphicsLayer(alpha = 0.8f),
+                            color = Color.White,
+                            fontSize = 12.sp)
+
                         Box(
                             modifier = Modifier
                                 .width(1.dp)
                                 .height(32.dp)
-                                .background(Color.LightGray)
+                                .background(Color.White)
                                 .align(Alignment.CenterVertically)
                                 .padding(top = 32.dp)
-
+                                .graphicsLayer(alpha = 0.4f)
                         )
+
                         Text(text = "HUMIDITY\n${weatherstate.Humidity}%", modifier = Modifier
-                            .padding(top = 16.dp)
-                            .padding(start = 16.dp), color = Color.Black)
+                            .padding(top = 8.dp)
+                            .padding(start = 8.dp)
+                            .graphicsLayer(alpha = 0.8f),
+                            color = Color.White,
+                            fontSize = 12.sp)
                     }
+
                 }
             }
+
+            Text(text = "${weatherstate.temp.toInt()}°",
+                fontSize = 90.sp,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 48.dp),
+                color = Color.Black
+            )
+        }
+
+        Box(modifier = Modifier
+            .weight(0.4f)
+            .fillMaxWidth()
+        ){
+            Card(modifier = Modifier.background(Color.Green).height(170.dp).width(200.dp)) {
+
+            }
+        }
+
+
     }
 
 }
 
+@Composable
+fun HourlyCard() {
+    Card {
+
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -224,13 +275,13 @@ fun SearchBar(
         placeholder = { Text("Enter a city name") },
         textStyle = TextStyle(Color.Black),
         trailingIcon = {
-                       IconButton(onClick = { viewModeObj.getData()
-                           keyboardController?.hide()
-                       }) {
-                           Icon(imageVector = Icons.Default.Send,
-                               contentDescription = null, tint = Color.Black
-                           )
-                       }
+            IconButton(onClick = { viewModeObj.getData()
+                keyboardController?.hide()
+            }) {
+                Icon(imageVector = Icons.Default.Send,
+                    contentDescription = null, tint = Color.Black
+                )
+            }
         },
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.outlinedTextFieldColors(
