@@ -83,6 +83,7 @@ dependencies {
 //    For RunTime Permission in Compose
     implementation("com.google.accompanist:accompanist-permissions:0.31.5-beta")
 
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
 
     implementation("androidx.core:core-ktx:1.15.0")

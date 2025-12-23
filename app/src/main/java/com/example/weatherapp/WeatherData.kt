@@ -28,6 +28,7 @@ data class ConditionIcon(
 )
 data class HourlyData(
     val time: String,
+    val temp_c: Double,
     val condition: ConditionIcon
 )
 data class Forecastday(

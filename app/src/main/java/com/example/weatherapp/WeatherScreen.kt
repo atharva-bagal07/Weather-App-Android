@@ -8,19 +8,23 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -51,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -95,8 +100,7 @@ fun WeatherScreen() {
                     }
                 }
             }
-        }
-        else{
+        } else {
             Log.e("fetchLocation", "Location permission not granted")
         }
     }
@@ -106,8 +110,7 @@ fun WeatherScreen() {
     ) { isGranted ->
         if (isGranted) {
             fetchLocation()
-        }
-        else{
+        } else {
             Log.e("WeatherScreen", "❌ Location permission denied")
         }
     }
@@ -119,8 +122,7 @@ fun WeatherScreen() {
 
         if (hasPermission) {
             fetchLocation()
-        }
-        else{
+        } else {
             permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
@@ -142,44 +144,57 @@ fun WeatherScreen() {
     val formattedDate = dateFormat.format(currentTime)
     val formattedTime = timeFormat.format(currentTime).lowercase()
 
+//    val listsplit = weatherstate.HourlyTime.split(" ").last()
+//    val hourlyTime = listsplit.split(":").first().toInt()
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .paint(painterResource(id = R.drawable.uifinal))
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .paint(painterResource(id = R.drawable.uifinal))
 
     )
     {
         SearchBar(
             query = user_input,
             onQueryChanged = {
-                viewModeObj.onUserInputChange(it) }
+                viewModeObj.onUserInputChange(it)
+            }
         )
 
-        Box(modifier = Modifier
-            .weight(0.6f)
-            .fillMaxWidth() // IMPORTANT: Ensures the Box uses the full horizontal space
+        Box(
+            modifier = Modifier
+                .weight(0.6f)
+                .fillMaxWidth() // IMPORTANT: Ensures the Box uses the full horizontal space
         )
 
         {
-            Box(modifier = Modifier
-                .padding(16.dp)
-                .shadow(
-                    elevation = 8.dp, // Adjust the value for desired depth (e.g., 4.dp, 8.dp)
-                    shape = RoundedCornerShape(12.dp) // The shadow shape must match the box shape
-                )
-                .wrapContentSize(align = Alignment.TopStart)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF355C7D))
-                .border(
-                    BorderStroke(2.dp, Color(0xFF355C7D)),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(8.dp)
-            ){
+            Box(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .shadow(
+                        elevation = 8.dp, // Adjust the value for desired depth (e.g., 4.dp, 8.dp)
+                        shape = RoundedCornerShape(12.dp) // The shadow shape must match the box shape
+                    )
+                    .wrapContentSize(align = Alignment.TopStart)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF355C7D))
+                    .border(
+                        BorderStroke(2.dp, Color(0xFF355C7D)),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(8.dp)
+            ) {
 
                 Column {
 
-                    Text(text = weatherstate.City, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White, modifier = Modifier.graphicsLayer(alpha = 0.9f))
+                    Text(
+                        text = weatherstate.City,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        modifier = Modifier.graphicsLayer(alpha = 0.9f)
+                    )
 
                     Divider(
                         color = Color.White,
@@ -191,22 +206,29 @@ fun WeatherScreen() {
                             .graphicsLayer(alpha = 0.4f)
                     )
 
-                    Text(text = formattedDate, fontSize = 20.sp,
+                    Text(
+                        text = formattedDate, fontSize = 20.sp,
                         modifier = Modifier.graphicsLayer(alpha = 0.8f),
-                        color = Color.White)
+                        color = Color.White
+                    )
 
-                    Text(text = formattedTime, fontSize = 16.sp,
+                    Text(
+                        text = formattedTime, fontSize = 16.sp,
                         modifier = Modifier.graphicsLayer(alpha = 0.8f),
-                        color = Color.White)
+                        color = Color.White
+                    )
 
                     Row {
 
-                        Text(text = "RAIN PROBABILITY\n${weatherstate.ChanceOfRain}%", modifier = Modifier
-                            .padding(top = 8.dp)
-                            .padding(end = 8.dp)
-                            .graphicsLayer(alpha = 0.8f),
+                        Text(
+                            text = "RAIN PROBABILITY\n${weatherstate.ChanceOfRain}%",
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .padding(end = 8.dp)
+                                .graphicsLayer(alpha = 0.8f),
                             color = Color.White,
-                            fontSize = 12.sp)
+                            fontSize = 12.sp
+                        )
 
                         Box(
                             modifier = Modifier
@@ -218,18 +240,21 @@ fun WeatherScreen() {
                                 .graphicsLayer(alpha = 0.4f)
                         )
 
-                        Text(text = "HUMIDITY\n${weatherstate.Humidity}%", modifier = Modifier
-                            .padding(top = 8.dp)
-                            .padding(start = 8.dp)
-                            .graphicsLayer(alpha = 0.8f),
+                        Text(
+                            text = "HUMIDITY\n${weatherstate.Humidity}%", modifier = Modifier
+                                .padding(top = 8.dp)
+                                .padding(start = 8.dp)
+                                .graphicsLayer(alpha = 0.8f),
                             color = Color.White,
-                            fontSize = 12.sp)
+                            fontSize = 12.sp
+                        )
                     }
 
                 }
             }
 
-            Text(text = "${weatherstate.temp.toInt()}°",
+            Text(
+                text = "${weatherstate.temp.toInt()}°",
                 fontSize = 90.sp,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -238,13 +263,12 @@ fun WeatherScreen() {
             )
         }
 
-        Box(modifier = Modifier
-            .weight(0.4f)
-            .fillMaxWidth()
-        ){
-            Card(modifier = Modifier.background(Color.Green).height(170.dp).width(200.dp)) {
-
-            }
+        Box(
+            modifier = Modifier
+                .weight(0.4f)
+                .fillMaxWidth()
+        ) {
+            weatherstate.HourlyForecast?.let { HourlyCards(it) }
         }
 
 
@@ -252,12 +276,42 @@ fun WeatherScreen() {
 
 }
 
-@Composable
-fun HourlyCard() {
-    Card {
 
+
+@Composable
+fun HourlyCards(hourlyForecast: List<HourlyData>) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(hourlyForecast) { hour ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
+                    .padding(24.dp)
+            ) {
+                // Time
+                val hourTime = hour.time.substringAfter(" ").substring(0, 5)
+                Text(text = hourTime, fontWeight = FontWeight.Bold)
+
+                AsyncImage(
+                    model = hour.condition.icon,
+                    contentDescription = "Weather icon",
+                    modifier = Modifier.size(30.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                 Spacer(modifier = Modifier.height(8.dp))
+                 Text(text = "${hour.temp_c}°C", fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -275,10 +329,12 @@ fun SearchBar(
         placeholder = { Text("Enter a city name") },
         textStyle = TextStyle(Color.Black),
         trailingIcon = {
-            IconButton(onClick = { viewModeObj.getData()
+            IconButton(onClick = {
+                viewModeObj.getData()
                 keyboardController?.hide()
             }) {
-                Icon(imageVector = Icons.Default.Send,
+                Icon(
+                    imageVector = Icons.Default.Send,
                     contentDescription = null, tint = Color.Black
                 )
             }
