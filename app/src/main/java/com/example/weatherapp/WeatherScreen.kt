@@ -290,23 +290,25 @@ fun HourlyCards(hourlyForecast: List<HourlyData>) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .background(Color(0xFFEEEEEE), shape = RoundedCornerShape(8.dp))
+                    .background(Color(0xFF355C7D), shape = RoundedCornerShape(8.dp))
                     .padding(24.dp)
             ) {
                 // Time
                 val hourTime = hour.time.substringAfter(" ").substring(0, 5)
-                Text(text = hourTime, fontWeight = FontWeight.Bold)
-
-                AsyncImage(
-                    model = hour.condition.icon,
-                    contentDescription = "Weather icon",
-                    modifier = Modifier.size(30.dp)
-                )
+                Text(text = hourTime, fontWeight = FontWeight.Bold, color = Color.White)
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                AsyncImage(
+                    model = "https:" + hour.condition.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
+
+
+
                  Spacer(modifier = Modifier.height(8.dp))
-                 Text(text = "${hour.temp_c}°C", fontWeight = FontWeight.Bold)
+                 Text(text = "${hour.temp_c}°C", fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }
