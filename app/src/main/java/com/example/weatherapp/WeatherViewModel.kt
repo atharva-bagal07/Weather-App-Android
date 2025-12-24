@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import java.util.Date
 
 class WeatherViewModel : ViewModel() {
 
@@ -55,13 +54,18 @@ class WeatherViewModel : ViewModel() {
                     val body2 = response2.body()
                     if (body2 != null) {
 
-                        val now = Date()
+                        val now = body2.location.localtime.toDate()
                         val next8Hours = body2.forecast.forecastday[0].hour
                             .mapNotNull { hourData ->
                                 val hourDate = hourData.time.toDate() // convert string to Date
-                                if (hourDate?.after(now) == true) hourData else null
+                                if (hourDate?.after(now) == true){
+                                    hourData
+                                }
+                                else{
+                                    null
+                                }
                             }
-                            .take(8)
+                            .take(12)
 
                         _state.value = _state.value.copy(
                             ChanceOfRain = body2.forecast.forecastday[0].day.daily_chance_of_rain,
@@ -94,13 +98,13 @@ class WeatherViewModel : ViewModel() {
                     val body = response.body()
                     val body2 = response2.body()
                     if (body != null && body2 != null) {
-                        val now = Date() // Get current time
+                        val now = body2.location.localtime.toDate() // Get current time
                         val next8Hours = body2.forecast.forecastday[0].hour // Take today's hourly forecast
                             .mapNotNull { hourData ->
                                 val hourDate = hourData.time.toDate() // convert string to Date
                                 if (hourDate?.after(now) == true) hourData else null// takes each element of the list and checks if it is greater than the current hour(now). if yes, returns it or else returns null.
                             }
-                            .take(8) // returns a new list with first n items of the og list
+                            .take(12) // returns a new list with first n items of the og list
 
                         _state.value = _state.value.copy(
                             temp = body.current.temp_c,

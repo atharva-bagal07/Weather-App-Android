@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Divider
@@ -51,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -143,9 +146,6 @@ fun WeatherScreen() {
 
     val formattedDate = dateFormat.format(currentTime)
     val formattedTime = timeFormat.format(currentTime).lowercase()
-
-//    val listsplit = weatherstate.HourlyTime.split(" ").last()
-//    val hourlyTime = listsplit.split(":").first().toInt()
 
     Column(
         modifier = Modifier
@@ -255,7 +255,7 @@ fun WeatherScreen() {
 
             Text(
                 text = "${weatherstate.temp.toInt()}°",
-                fontSize = 90.sp,
+                fontSize = 80.sp,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 48.dp),
@@ -277,7 +277,6 @@ fun WeatherScreen() {
 }
 
 
-
 @Composable
 fun HourlyCards(hourlyForecast: List<HourlyData>) {
     LazyRow(
@@ -294,21 +293,40 @@ fun HourlyCards(hourlyForecast: List<HourlyData>) {
                     .padding(24.dp)
             ) {
                 // Time
-                val hourTime = hour.time.substringAfter(" ").substring(0, 5)
-                Text(text = hourTime, fontWeight = FontWeight.Bold, color = Color.White)
+                val hourStr = hour.time.substringAfter(" ").substring(0, 2) // "18" from "18:00"
+                val minuteStr = hour.time.substringAfter(":")              // "00"
+
+                val hourInt = hourStr.toInt()
+                val amPm = if (hourInt >= 12) "PM" else "AM"
+                val hour12 = when {
+                    hourInt == 0 -> 12
+                    hourInt > 12 -> hourInt - 12
+                    else -> hourInt
+                }
+
+                Text(
+                    text = "$hour12:$minuteStr $amPm",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 20.sp
+                )
+
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 AsyncImage(
                     model = "https:" + hour.condition.icon,
                     contentDescription = null,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(48.dp)
                 )
 
 
 
-                 Spacer(modifier = Modifier.height(8.dp))
-                 Text(text = "${hour.temp_c}°C", fontWeight = FontWeight.Bold, color = Color.White)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "${hour.temp_c}°C", fontWeight = FontWeight.Bold, color = Color.White,
+                    fontSize = 20.sp
+                )
             }
         }
     }
@@ -351,5 +369,14 @@ fun SearchBar(
             .fillMaxWidth()
             .padding(16.dp),
         singleLine = true,
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Go
+        ),
+        keyboardActions = KeyboardActions(
+            onGo = {
+                viewModeObj.getData()
+                keyboardController?.hide()
+            }
+        )
     )
 }
