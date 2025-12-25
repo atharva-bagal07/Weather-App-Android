@@ -70,6 +70,7 @@ import java.util.TimeZone
 @Composable
 fun WeatherScreen() {
 
+
     val viewModeObj: WeatherViewModel = viewModel()
     val weatherstate by viewModeObj.state_for_comp
     val user_input by viewModeObj.userInput
@@ -192,8 +193,7 @@ fun WeatherScreen() {
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color.White,
-                        modifier = Modifier.graphicsLayer(alpha = 0.9f)
+                        color = Color.White
                     )
 
                     Divider(
@@ -208,13 +208,13 @@ fun WeatherScreen() {
 
                     Text(
                         text = formattedDate, fontSize = 20.sp,
-                        modifier = Modifier.graphicsLayer(alpha = 0.8f),
+                        modifier = Modifier.graphicsLayer(alpha = 0.95f),
                         color = Color.White
                     )
 
                     Text(
                         text = formattedTime, fontSize = 16.sp,
-                        modifier = Modifier.graphicsLayer(alpha = 0.8f),
+                        modifier = Modifier.graphicsLayer(alpha = 0.95f),
                         color = Color.White
                     )
 
@@ -225,7 +225,7 @@ fun WeatherScreen() {
                             modifier = Modifier
                                 .padding(top = 8.dp)
                                 .padding(end = 8.dp)
-                                .graphicsLayer(alpha = 0.8f),
+                                .graphicsLayer(alpha = 0.9f),
                             color = Color.White,
                             fontSize = 12.sp
                         )
@@ -244,7 +244,7 @@ fun WeatherScreen() {
                             text = "HUMIDITY\n${weatherstate.Humidity}%", modifier = Modifier
                                 .padding(top = 8.dp)
                                 .padding(start = 8.dp)
-                                .graphicsLayer(alpha = 0.8f),
+                                .graphicsLayer(alpha = 0.9f),
                             color = Color.White,
                             fontSize = 12.sp
                         )
@@ -253,9 +253,24 @@ fun WeatherScreen() {
                 }
             }
 
+            Box(modifier = Modifier.padding(16.dp)
+                .padding(top = 24.dp)
+                .wrapContentSize()
+                .background(Color(0xFF355C7D),
+                    shape = RoundedCornerShape(8.dp))
+                .align(Alignment.CenterStart)
+                .padding(end = 16.dp)){
+
+                Text(text = "Feels Like: ${weatherstate.FeelsLike}°C",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    modifier = Modifier.padding(16.dp))
+            }
+
             Text(
                 text = "${weatherstate.temp.toInt()}°",
-                fontSize = 80.sp,
+                fontSize = 70.sp,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 48.dp),
@@ -268,10 +283,8 @@ fun WeatherScreen() {
                 .weight(0.4f)
                 .fillMaxWidth()
         ) {
-            weatherstate.HourlyForecast?.let { HourlyCards(it) }
+            HourlyCards(weatherstate.HourlyForecast)
         }
-
-
     }
 
 }
@@ -380,3 +393,16 @@ fun SearchBar(
         )
     )
 }
+
+
+//when{
+//    viewState.loading->{
+//        CircularProgressIndicator(modifier.align(Alignment.Center))
+//    }
+//    viewState.error != null ->{
+//        Text(text = "ERROR OCCURED!")
+//    }
+//    else->{
+//        CategoryScreen(viewState.list)
+//    }
+//}

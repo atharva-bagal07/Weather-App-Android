@@ -11,7 +11,8 @@ data class Location(
 
 data class Current(
     val temp_c: Double,
-    val humidity: Int
+    val humidity: Int,
+    val feelslike_c: Double
 )
 
 data class WeatherResponse(
