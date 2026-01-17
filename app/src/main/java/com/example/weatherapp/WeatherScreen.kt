@@ -5,9 +5,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,13 +41,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -138,157 +133,183 @@ fun WeatherScreen() {
         }
     }
 
+    val formattedDate = remember(currentTime, weatherstate.TimeZone) {
+        try {
+            val df = SimpleDateFormat("MMMM d", Locale.ENGLISH)
+            df.timeZone = TimeZone.getTimeZone(weatherstate.TimeZone)
+            df.format(currentTime)
+        } catch (e: Exception) {
+            ""
+        }
+    }
 
-    val dateFormat = SimpleDateFormat("MMMM d", Locale.ENGLISH)
-    val timeFormat = SimpleDateFormat("h:mma", Locale.ENGLISH)
+    val formattedTime = remember(currentTime, weatherstate.TimeZone) {
+        try {
+            val tf = SimpleDateFormat("h:mma", Locale.ENGLISH)
+            tf.timeZone = TimeZone.getTimeZone(weatherstate.TimeZone)
+            tf.format(currentTime).lowercase()
+        } catch (e: Exception) {
+            ""
+        }
+    }
 
-    dateFormat.timeZone = TimeZone.getTimeZone(weatherstate.TimeZone)
-    timeFormat.timeZone = TimeZone.getTimeZone(weatherstate.TimeZone)
-
-    val formattedDate = dateFormat.format(currentTime)
-    val formattedTime = timeFormat.format(currentTime).lowercase()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .paint(painterResource(id = R.drawable.uifinal))
-
-    )
-    {
-        SearchBar(
-            query = user_input,
-            onQueryChanged = {
-                viewModeObj.onUserInputChange(it)
-            }
-        )
-
-        Box(
-            modifier = Modifier
-                .weight(0.6f)
-                .fillMaxWidth() // IMPORTANT: Ensures the Box uses the full horizontal space
-        )
-
-        {
-            Box(
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (weatherstate.City.isNotEmpty()) {
+            Column(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .shadow(
-                        elevation = 8.dp, // Adjust the value for desired depth (e.g., 4.dp, 8.dp)
-                        shape = RoundedCornerShape(12.dp) // The shadow shape must match the box shape
-                    )
-                    .wrapContentSize(align = Alignment.TopStart)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF355C7D))
-                    .border(
-                        BorderStroke(2.dp, Color(0xFF355C7D)),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .padding(8.dp)
-            ) {
+                    .fillMaxSize()
+//            .paint(painterResource(id = R.drawable.uifinal))
+//                .background(Brush.verticalGradient(listOf(Color(0xFF355C7D), Color(0xFF80b3c9))))
+                    .background(Color(0xFF0172B0))
+                    .background(Color.Black.copy(alpha = 0.1f))
 
-                Column {
+            )
+            {
+                SearchBar(
+                    query = user_input,
+                    onQueryChanged = {
+                        viewModeObj.onUserInputChange(it)
+                    }
+                )
 
-                    Text(
-                        text = weatherstate.City,
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = Color.White
-                    )
+                Box(
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .fillMaxWidth() // IMPORTANT: Ensures the Box uses the full horizontal space
+                )
 
-                    Divider(
-                        color = Color.White,
-                        thickness = 1.dp,
+                {
+                    Box(
                         modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .padding(end = 36.dp)
-                            .width(180.dp)
-                            .graphicsLayer(alpha = 0.4f)
-                    )
+                            .padding(16.dp)
+                            .wrapContentSize(align = Alignment.TopStart)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF75D6FF).copy(alpha = 0.2f))
+                            .padding(8.dp)
 
-                    Text(
-                        text = formattedDate, fontSize = 20.sp,
-                        modifier = Modifier.graphicsLayer(alpha = 0.95f),
-                        color = Color.White
-                    )
+                    ) {
 
-                    Text(
-                        text = formattedTime, fontSize = 16.sp,
-                        modifier = Modifier.graphicsLayer(alpha = 0.95f),
-                        color = Color.White
-                    )
+                        Column {
 
-                    Row {
+                            Text(
+                                text = weatherstate.City,
+                                fontFamily = FontFamily.SansSerif,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                color = Color.White
+                            )
+
+                            Divider(
+                                color = Color.White,
+                                thickness = 1.dp,
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .padding(end = 36.dp)
+                                    .width(180.dp)
+                                    .graphicsLayer(alpha = 0.4f)
+                            )
+
+                            Text(
+                                text = formattedDate, fontSize = 20.sp,
+                                modifier = Modifier.graphicsLayer(alpha = 0.95f),
+                                color = Color.White
+                            )
+
+                            Text(
+                                text = formattedTime, fontSize = 16.sp,
+                                modifier = Modifier.graphicsLayer(alpha = 0.95f),
+                                color = Color.White
+                            )
+
+                            Row {
+
+                                Text(
+                                    text = "RAIN PROBABILITY\n${weatherstate.ChanceOfRain}%",
+                                    modifier = Modifier
+                                        .padding(top = 8.dp)
+                                        .padding(end = 8.dp)
+                                        .graphicsLayer(alpha = 0.9f),
+                                    color = Color.White,
+                                    fontSize = 12.sp
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .width(1.dp)
+                                        .height(32.dp)
+                                        .background(Color.White)
+                                        .align(Alignment.CenterVertically)
+                                        .padding(top = 32.dp)
+                                        .graphicsLayer(alpha = 0.4f)
+                                )
+
+                                Text(
+                                    text = "HUMIDITY\n${weatherstate.Humidity}%",
+                                    modifier = Modifier
+                                        .padding(top = 8.dp)
+                                        .padding(start = 8.dp)
+                                        .graphicsLayer(alpha = 0.9f),
+                                    color = Color.White,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .padding(top = 24.dp)
+                            .wrapContentSize()
+                            .background(
+                                Color(0xFF75D6FF).copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .align(Alignment.CenterStart)
+                            .padding(end = 16.dp)
+                    ) {
 
                         Text(
-                            text = "RAIN PROBABILITY\n${weatherstate.ChanceOfRain}%",
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .padding(end = 8.dp)
-                                .graphicsLayer(alpha = 0.9f),
+                            text = "Feels Like: ${weatherstate.FeelsLike}°C",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
                             color = Color.White,
-                            fontSize = 12.sp
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .height(32.dp)
-                                .background(Color.White)
-                                .align(Alignment.CenterVertically)
-                                .padding(top = 32.dp)
-                                .graphicsLayer(alpha = 0.4f)
-                        )
-
-                        Text(
-                            text = "HUMIDITY\n${weatherstate.Humidity}%", modifier = Modifier
-                                .padding(top = 8.dp)
-                                .padding(start = 8.dp)
-                                .graphicsLayer(alpha = 0.9f),
-                            color = Color.White,
-                            fontSize = 12.sp
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
 
+                    Text(
+                        text = "${weatherstate.temp.toInt()}°",
+                        fontSize = 70.sp,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 48.dp),
+                        color = Color.White
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(0.4f)
+                        .fillMaxWidth()
+                ) {
+                    HourlyCards(weatherstate.HourlyForecast)
                 }
             }
+        } else if (!weatherstate.loading) {
+            // Case where app isn't loading but has no data (e.g., error or start)
 
-            Box(modifier = Modifier.padding(16.dp)
-                .padding(top = 24.dp)
-                .wrapContentSize()
-                .background(Color(0xFF355C7D),
-                    shape = RoundedCornerShape(8.dp))
-                .align(Alignment.CenterStart)
-                .padding(end = 16.dp)){
-
-                Text(text = "Feels Like: ${weatherstate.FeelsLike}°C",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color.White,
-                    modifier = Modifier.padding(16.dp))
-            }
-
-            Text(
-                text = "${weatherstate.temp.toInt()}°",
-                fontSize = 70.sp,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 48.dp),
-                color = Color.Black
-            )
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF75D6FF)))
         }
-
-        Box(
-            modifier = Modifier
-                .weight(0.4f)
-                .fillMaxWidth()
-        ) {
-            HourlyCards(weatherstate.HourlyForecast)
+        if (weatherstate.loading) {
+            LoadingOverlay()
         }
     }
 
 }
-
 
 @Composable
 fun HourlyCards(hourlyForecast: List<HourlyData>) {
@@ -302,7 +323,10 @@ fun HourlyCards(hourlyForecast: List<HourlyData>) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .background(Color(0xFF355C7D), shape = RoundedCornerShape(8.dp))
+                    .background(
+                        Color(0xFF75D6FF).copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
                     .padding(24.dp)
             ) {
                 // Time

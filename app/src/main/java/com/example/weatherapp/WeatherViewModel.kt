@@ -41,7 +41,6 @@ class WeatherViewModel : ViewModel() {
 
                     if (body != null) {
                         _state.value = _state.value.copy(
-                            loading = false,
                             temp = body.current.temp_c,
                             City = body.location.name,
                             Country = body.location.country,
@@ -72,12 +71,11 @@ class WeatherViewModel : ViewModel() {
                                 }
                             }
                             .take(12)
-
                         _state.value = _state.value.copy(
-                            loading = false,
                             ChanceOfRain = body2.forecast.forecastday[0].day.daily_chance_of_rain,
                             HourlyForecast = next8Hours
                         )
+
                     } else {
                         println("Body is Null")
                     }
@@ -88,7 +86,12 @@ class WeatherViewModel : ViewModel() {
                     _userinput.value = ""
                 }
             } catch (e: Exception) {
+                _state.value = _state.value.copy(loading = false)
                 println("Error ${e.message} occurred!")
+            }
+            finally {
+                // Ensures spinner always goes away
+                _state.value = _state.value.copy(loading = false)
             }
         }
     }
@@ -119,7 +122,6 @@ class WeatherViewModel : ViewModel() {
                             .take(12) // returns a new list with first n items of the og list
 
                         _state.value = _state.value.copy(
-                            loading = false,
                             temp = body.current.temp_c,
                             City = body.location.name,
                             Country = body.location.country,
@@ -129,7 +131,6 @@ class WeatherViewModel : ViewModel() {
                             FeelsLike = body.current.feelslike_c,
                             ChanceOfRain = body2.forecast.forecastday[0].day.daily_chance_of_rain,
                             HourlyForecast = next8Hours
-
                         )
                     }
                 } else {
@@ -141,6 +142,10 @@ class WeatherViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 println("Error fetching weather by coordinates: ${e.message}")
+            }
+            finally {
+                // THIS IS KEY: Always turn off loading, even on failure
+                _state.value = _state.value.copy(loading = false)
             }
         }
     }
