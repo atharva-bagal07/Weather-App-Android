@@ -86,8 +86,8 @@ class WeatherViewModel : ViewModel() {
                     _userinput.value = ""
                 }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(loading = false)
-                println("Error ${e.message} occurred!")
+                _state.value = _state.value.copy(
+                    error = "Something went wrong. Please try again.")
             }
             finally {
                 // Ensures spinner always goes away
@@ -141,7 +141,9 @@ class WeatherViewModel : ViewModel() {
                     )
                 }
             } catch (e: Exception) {
-                println("Error fetching weather by coordinates: ${e.message}")
+                _state.value = _state.value.copy(
+                    error = "Something went wrong. Please try again."
+                )
             }
             finally {
                 // THIS IS KEY: Always turn off loading, even on failure
