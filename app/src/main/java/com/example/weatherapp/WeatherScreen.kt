@@ -177,7 +177,7 @@ fun WeatherScreen() {
                             colors = ButtonDefaults.buttonColors(containerColor = ButtonColor)
                         )
                         {
-                            Text(text = "Retry")
+                            Text(text = "Retry", color = Color.White)
                         }
                     }
 
